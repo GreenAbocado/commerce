@@ -2,10 +2,11 @@ package product;
 
 import lombok.Getter;
 
+/* 상품 도메인 객체 <필드 규칙 및 상태 변경 관리 (유효성, 필드 변경 로직 등)> */
 @Getter
-public class Product {  // 상품 도메인 객체 -> 유효한 필드 관리
+public class Product {
 
-    // 이름으로 구별 가능하여 id 생성 X
+    /* 이름으로 구분, 이후 필요시 id 추가 */
     private final String name;
     private int price;
     private String description;
@@ -20,22 +21,28 @@ public class Product {  // 상품 도메인 객체 -> 유효한 필드 관리
         this.stock = stock;
     }
 
-    // 이름, 가격, 설명 입력 강제화
+    /* stock 입력 X 가능 */
     public Product(String name, int price, String description) {
         this(name, price, description, 0);
     }
 
-
-    // 필드 변경 로직 {가격/설명 변경 및 재고 증감}
-
-    public void changePrice(int price) {
-        validatePrice(price);
-        this.price = price;
+    @Override
+    public String toString() {
+        return String.format(" %s | %,d원 | %s | 재고: %d개", name, price, description, stock);
     }
 
-    public void changeDescription(String description) {
-        validateDescription(description);
-        this.description = description;
+
+    /* 상태 변경 로직
+       - price/description 선택 변경
+       - 재고 증감 로직 */
+
+    public void update(Integer price, String description) { // null 여부로 변경 필드 선택하기 위해 래퍼 적용
+        if (price != null) { validatePrice(price); }
+        if (description != null) { validateDescription(description); }
+        // 변경 필드에 대한 매개 변수가 검증에 실패할 경우, 모든 필드 변경 X
+
+        if (price != null) { this.price = price; }
+        if (description != null) { this.description = description; }
     }
 
     public void increaseStock(int amount) {    // 재고 증가 (1 이상 가능)

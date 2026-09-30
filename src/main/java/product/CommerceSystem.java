@@ -1,34 +1,87 @@
 package product;
 
+import lombok.RequiredArgsConstructor;
 import java.util.*;
 
-public class CommerceSystem {   // 상품 관리 및 입출력
-    private final List<Product> products;
+/* 사용자 인터페이스, 입출력 및 로직 분기, 입력 검증, 메시지 상수 집합, 카테고리 관리 등 -> 클래스 분리 필요 */
+@RequiredArgsConstructor
+public class CommerceSystem {
+    private final List<Category> categories;   // 입출력 계층에서 데이터 직접 변경 위험 -> 이후 클래스 분리하여 메서드로 사용
 
     public void start() {
         Scanner sc = new Scanner(System.in);
 
-        System.out.println("[ 실시간 커머스 플랫폼 - 전자제품 ]");
-        do {
-            for (int i = 0; i < products.size(); i++) {
-                System.out.println(formatProduct(i+1, products.get(i)));
-            }
-            System.out.println("0. 종료");
-        } while(sc.nextInt() != 0);
-        System.out.print("커머스 플랫폼을 종료합니다.");
+        while (true) {
+            // 카테고리 리스트 출력
+            System.out.printf(CATEGORIES_FORMAT, categoryListToString(categories));
+
+            int categoryNum = validateInputNum(sc.nextInt(), categories.size()-1);
+            if (categoryNum == -1) { break; }
+
+            // 특정 카테고리 상품 리스트 출력
+            Category ca = categories.get(categoryNum);
+            System.out.printf(PRODUCTS_FORMAT, ca.getName(), productListToString(ca));
+
+            int productNum = validateInputNum(sc.nextInt(), ca.getAllProducts().size()-1);
+            if (productNum == -1) { continue; }
+
+            // 특정 상품 toString 출력
+            System.out.printf(SELECTED_PRODUCT_FORMAT, ca.getAllProducts().get(productNum));
+            System.out.println();
+        }
+        System.out.print(EXIT);
     }
 
-    private static String formatProduct(int order, Product product) {
-        return String.format("%d. %-14s | %,10d원 | %s", order, product.getName(), product.getPrice(),product.getDescription());
+
+    /* 입력 검증, 출력 관련 메서드: 이후 클래스 분리를 위해 미리 static화하여 결합도 낮춤 */
+
+
+    private static int validateInputNum(int input, int maxSize) {
+        if (input == 0) { return -1; }
+
+        input -= 1;
+        if (input < 0 || input > maxSize) { throw new IllegalArgumentException("잘못된 번호입니다.");}
+
+        return input;
     }
 
-    // 생성 시 상품 저장소 DI 및 더미데이터 추가
-    public CommerceSystem(List<Product> products) {
-        this.products = products;
+    // 상품 리스트 출력문 생성
+    private static String productListToString(Category category) {
+        StringBuilder sb = new StringBuilder();
+        List<Product> productList = category.getAllProducts();
 
-        products.add(new Product("Galaxy S25", 1_200_000, "최신 안드로이드 스마트폰"));
-        products.add(new Product("iphone 16", 1_350_000, "Apple의 최신 스마트폰"));
-        products.add(new Product("MackBook Pro", 2_400_000, "M3 칩셉이 탑재된 노트북"));
-        products.add(new Product("Airpods Pro", 350_000, "노이즈 캔슬링 무선 이어폰"));
+        for (int i = 0; i < productList.size(); i++) {
+            Product product = productList.get(i);
+            sb.append(i+1).append('.')
+                    .append(String.format(PRODUCT_FORMAT, product.getName(), product.getPrice(), product.getDescription()))
+                    .append('\n');
+        }
+        return sb.toString();
     }
+
+    // 카테고리 리스트 출력문 생성
+    private static String categoryListToString(List<Category> categories) {
+        StringBuilder sb = new StringBuilder();
+
+        for (int i = 0; i < categories.size(); i++) {
+            sb.append(i+1).append(". ").append(categories.get(i).getName()).append('\n');
+        }
+        return sb.toString();
+    }
+
+
+    // 출력 메시지 상수 집합
+    private static final String CATEGORIES_FORMAT = """
+            [ 실시간 커머스 플랫폼 메인 ]
+            %s0. 종료
+            """;
+
+    private static final String PRODUCTS_FORMAT = """
+            [ %s 카테고리 ]
+            %s0. 뒤로가기
+            """;
+
+    private static final String PRODUCT_FORMAT = " %-14s | %,10d원 | %-14s";
+    private static final String SELECTED_PRODUCT_FORMAT = "선택한 상품: %s\n";
+    private static final String EXIT = "커머스 플랫폼을 종료합니다.";
 }
