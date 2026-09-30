@@ -3,6 +3,8 @@ package product;
 import lombok.Getter;
 import java.util.*;
 
+import static exception.ExceptionMessage.*;
+
 /* 상품 비즈니스 로직 수행 및 저장소 관리, 카테고리별 ProductManager */
 public class Category {
     @Getter
@@ -17,12 +19,12 @@ public class Category {
     /* 비즈니스 로직 */
 
     public void addProduct(String name, int price, String description, int stock) {
-        if (findByName(name).isPresent()) { throw new IllegalArgumentException("상품이 이미 존재합니다"); }
+        if (findByName(name).isPresent()) { throw new IllegalArgumentException(PRODUCT_ALREADY_EXIST); }
         saveProduct(new Product(name, price, description, stock));
     }
 
     public Product getProductByName(String name) {
-        return findByName(name).orElseThrow(() -> new IllegalArgumentException("해당 이름을 갖는 상품이 없습니다."));
+        return findByName(name).orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
     }
 
     public List<Product> getAllProducts() {
