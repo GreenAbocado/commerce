@@ -1,7 +1,6 @@
 package product;
 
-import lombok.Getter;
-
+import lombok.*;
 import static exception.ExceptionMessage.*;
 
 /* 상품 도메인 객체 <필드 규칙 및 상태 변경 관리 (유효성, 필드 변경 로직 등)> */
@@ -14,22 +13,18 @@ public class Product {
     /* 이름으로 구분, 이후 필요시 id 추가 */
     private final String name;
     private final Category category;
-    private int price;
+    private Integer price;
     private String description;
     private int stock;
 
-    public Product(String name, Category category, int price, String description, int stock) {
+    @Builder    /* 매개변수 과도화로 빌더 적용, stock 제외 매개변수 null일 경우 예외 */
+    private Product(String name, Category category, Integer price, String description, int stock) {
         validateAtConstruct(name, category, price, description, stock);
         this.name = name;
         this.category = category;
         this.price = price;
         this.description = description;
         this.stock = stock;
-    }
-
-    /* stock 입력 X 가능 */
-    public Product(String name, Category category, int price, String description) {
-        this(name, category, price, description, 0);
     }
 
 
@@ -72,7 +67,8 @@ public class Product {
         name : null, 공백, 20자 초과 입력
         category : null 입력
         description : null, 100자 초과 입력
-        price, stock : 음수 입력
+        price : null, 음수 입력
+        stock : 음수 입력
         stock 증감 로직 : 0개 이하 입력 */
 
     private static void validateName(String name) {
@@ -90,14 +86,14 @@ public class Product {
         }
     }
 
-    private static void validatePrice(int num) {
-        if (num < 0) {
+    private static void validatePrice(Integer price) {
+        if (price == null || price < 0) {
             throw new IllegalArgumentException(MINUS_PRICE_INPUT);
         }
     }
 
-    private static void validateStock(int num) {
-        if (num < 0) {
+    private static void validateStock(int stock) {
+        if (stock < 0) {
             throw new IllegalArgumentException(MINUS_STOCK_INPUT);
         }
     }
@@ -106,7 +102,6 @@ public class Product {
         if (description == null) {  // 설명 공백 가능
             throw new IllegalArgumentException(NONE_DESCRIPTION_INPUT);
         }
-
         if (description.length() > MAX_DESCRIPTION_LENGTH) {
             throw new IllegalArgumentException(String.format(OVER_DESCRIPTION_INPUT, MAX_DESCRIPTION_LENGTH));
         }
@@ -118,7 +113,7 @@ public class Product {
         }
     }
 
-    private static void validateAtConstruct(String name, Category category, int price, String description, int stock) {
+    private static void validateAtConstruct(String name, Category category, Integer price, String description, int stock) {
         validateName(name);
         validateCategory(category);
         validatePrice(price);
@@ -129,6 +124,6 @@ public class Product {
 
     @Override
     public String toString() {
-        return String.format(" %s | %,d원 | %s | 재고: %d개", name, price, description, stock);
+        return String.format(" %s | %,d원 | %s | 재고: %d개 ", name, price, description, stock);
     }
 }
