@@ -13,21 +13,23 @@ public class Product {
 
     /* 이름으로 구분, 이후 필요시 id 추가 */
     private final String name;
+    private final Category category;
     private int price;
     private String description;
     private int stock;
 
-    public Product(String name, int price, String description, int stock) {
-        validateAtConstruct(name, price, description, stock);
+    public Product(String name, Category category, int price, String description, int stock) {
+        validateAtConstruct(name, category, price, description, stock);
         this.name = name;
+        this.category = category;
         this.price = price;
         this.description = description;
         this.stock = stock;
     }
 
     /* stock 입력 X 가능 */
-    public Product(String name, int price, String description) {
-        this(name, price, description, 0);
+    public Product(String name, Category category, int price, String description) {
+        this(name, category, price, description, 0);
     }
 
 
@@ -68,6 +70,7 @@ public class Product {
 
     /*  입력 유효성 및 비즈니스 규칙 검증
         name : null, 공백, 20자 초과 입력
+        category : null 입력
         description : null, 100자 초과 입력
         price, stock : 음수 입력
         stock 증감 로직 : 0개 이하 입력 */
@@ -78,6 +81,12 @@ public class Product {
         }
         if (name.length() > MAX_NAME_LENGTH) {
             throw new IllegalArgumentException(String.format(OVER_NAME_INPUT, MAX_NAME_LENGTH));
+        }
+    }
+
+    private static void validateCategory(Category category) {
+        if (category == null) {
+            throw new IllegalArgumentException(NONE_CATEGORY_INPUT);
         }
     }
 
@@ -109,8 +118,9 @@ public class Product {
         }
     }
 
-    private static void validateAtConstruct(String name, int price, String description, int stock) {
+    private static void validateAtConstruct(String name, Category category, int price, String description, int stock) {
         validateName(name);
+        validateCategory(category);
         validatePrice(price);
         validateDescription(description);
         validateStock(stock);
