@@ -18,8 +18,7 @@ public class Product {
     private int stock;
 
     public Product(String name, int price, String description, int stock) {
-        validateName(name); validateDescription(description);
-        validatePrice(price); validateStock(stock);
+        validateAtConstruct(name, price, description, stock);
         this.name = name;
         this.price = price;
         this.description = description;
@@ -73,7 +72,7 @@ public class Product {
         price, stock : 음수 입력
         stock 증감 로직 : 0개 이하 입력 */
 
-    private void validateName(String name) {
+    private static void validateName(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException(NONE_NAME_INPUT);
         }
@@ -82,19 +81,19 @@ public class Product {
         }
     }
 
-    private void validatePrice(int num) {
+    private static void validatePrice(int num) {
         if (num < 0) {
             throw new IllegalArgumentException(MINUS_PRICE_INPUT);
         }
     }
 
-    private void validateStock(int num) {
+    private static void validateStock(int num) {
         if (num < 0) {
             throw new IllegalArgumentException(MINUS_STOCK_INPUT);
         }
     }
 
-    private void validateDescription(String description) {
+    private static void validateDescription(String description) {
         if (description == null) {  // 설명 공백 가능
             throw new IllegalArgumentException(NONE_DESCRIPTION_INPUT);
         }
@@ -104,10 +103,17 @@ public class Product {
         }
     }
 
-    private void validateAmount(int amount) {
+    private static void validateAmount(int amount) {
         if (amount <= 0) {
             throw new IllegalArgumentException(INVALID_AMOUNT_INPUT);
         }
+    }
+
+    private static void validateAtConstruct(String name, int price, String description, int stock) {
+        validateName(name);
+        validatePrice(price);
+        validateDescription(description);
+        validateStock(stock);
     }
 
 
