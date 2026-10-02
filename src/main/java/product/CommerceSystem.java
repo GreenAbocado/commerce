@@ -1,18 +1,19 @@
 package product;
 
-import lombok.RequiredArgsConstructor;
+import product.dto.ProductResponseDTO;
+
 import java.util.*;
 import static exception.ExceptionMessage.NUM_NOT_EXIST;
 import static exception.GlobalExceptionHandler.handleException;
 
-/* 사용자 인터페이스, 입출력 및 로직 분기, 입력 검증, 메시지 상수 집합, 카테고리 관리 등 -> 클래스 분리 필요 */
+/* 사용자 인터페이스, 입출력 및 로직 분기, 입력 검증, 메시지 상수 집합 등 -> 클래스 분리 필요 */
 public class CommerceSystem {
-    private final List<Category> categories;   // 입출력 계층에서 데이터 직접 변경 위험 -> 이후 클래스 분리하여 메서드로 사용
+    private final ProductManager productManager;
     private boolean isRun;
 
-    public CommerceSystem(List<Category> categories) {
-        this.categories = categories;
-        isRun = true;
+    public CommerceSystem(ProductManager productManager) {
+        this.productManager = productManager;
+        this.isRun = true;
     }
 
     public void start() {
@@ -21,20 +22,21 @@ public class CommerceSystem {
         while (isRun) {
             handleException(() -> {
                 // 카테고리 리스트 출력
-                System.out.printf(CATEGORIES_FORMAT, categoryListToString(categories));
+                System.out.printf(CATEGORIES_FORMAT, categoriesToString());
 
-                int categoryNum = validateInputNum(sc.nextInt(), categories.size()-1);
-                if (categoryNum == -1) { stopRun(); return; }   // 외부 변수 캡쳐 및 effectively final 트러블 슈팅 작성
+                int categoryId = validateInputNum(sc.nextInt(), Category.values().length);
+                if (categoryId == -1) { stopRun(); return; }   // 외부 변수 캡쳐 및 effectively final 트러블 슈팅 작성
 
                 // 특정 카테고리 상품 리스트 출력
-                Category ca = categories.get(categoryNum);
-                System.out.printf(PRODUCTS_FORMAT, ca.getName(), productListToString(ca));
+                Category category = Category.by(categoryId);
+                List<ProductResponseDTO> productsList = productManager.getAllByCategory(category);
+                System.out.printf(PRODUCTS_FORMAT, category.getName(), productsToString(productsList));
 
-                int productNum = validateInputNum(sc.nextInt(), ca.getAllProducts().size()-1);
-                if (productNum == -1) { return; }
+                int productIdx = validateInputNum(sc.nextInt(), productsList.size());
+                if (productIdx == -1) { return; }
 
                 // 특정 상품 toString 출력
-                System.out.printf(SELECTED_PRODUCT_FORMAT, ca.getAllProducts().get(productNum));
+                System.out.printf(SELECTED_PRODUCT_FORMAT, productsList.get(productIdx));
                 System.out.println();
             });
         }
@@ -51,20 +53,17 @@ public class CommerceSystem {
 
     private static int validateInputNum(int input, int maxSize) {
         if (input == 0) { return -1; }
+        if (input < 1 || input > maxSize) { throw new IllegalArgumentException(NUM_NOT_EXIST);}
 
-        input -= 1;
-        if (input < 0 || input > maxSize) { throw new IllegalArgumentException(NUM_NOT_EXIST);}
-
-        return input;
+        return input-1;
     }
 
     // 상품 리스트 출력문 생성
-    private static String productListToString(Category category) {
+    private static String productsToString(List<ProductResponseDTO> list) {
         StringBuilder sb = new StringBuilder();
-        List<Product> productList = category.getAllProducts();
 
-        for (int i = 0; i < productList.size(); i++) {
-            Product product = productList.get(i);
+        for (int i = 0; i < list.size(); i++) {
+            ProductResponseDTO product = list.get(i);
             sb.append(i+1).append('.')
                     .append(String.format(PRODUCT_FORMAT, product.getName(), product.getPrice(), product.getDescription()))
                     .append('\n');
@@ -73,11 +72,12 @@ public class CommerceSystem {
     }
 
     // 카테고리 리스트 출력문 생성
-    private static String categoryListToString(List<Category> categories) {
+    private static String categoriesToString() {
         StringBuilder sb = new StringBuilder();
+        Category[] categories = Category.values();
 
-        for (int i = 0; i < categories.size(); i++) {
-            sb.append(i+1).append(". ").append(categories.get(i).getName()).append('\n');
+        for (int i = 0; i < categories.length; i++) {
+            sb.append(String.format("%d. %s\n", categories[i].getId()+1, categories[i]));
         }
         return sb.toString();
     }
