@@ -23,6 +23,7 @@ public class ExceptionMessage {
 
     /* I/O 관련 */
     public static final String NUM_NOT_EXIST = "존재하지 않는 번호입니다.\n";
+    public static final String NOT_NUM_TYPE = "숫자 형식이 아닙니다.\n";
 
     private ExceptionMessage() {}   // 외부 객체 생성 방지
 }

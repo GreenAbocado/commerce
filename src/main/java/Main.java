@@ -1,3 +1,4 @@
+import io.Input;
 import product.*;
 import java.util.*;
 
@@ -5,12 +6,13 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         ProductManager productManager = new ProductManager();
+        Input input = new Input(System.in);
 
         // 더미 상품 삽입
         Arrays.stream(DummyProduct.values())
                 .forEach((dummy)-> productManager.addProduct(dummy.createDTO()));
 
-        CommerceSystem cs = new CommerceSystem(productManager);
+        CommerceSystem cs = new CommerceSystem(productManager, input);
 
         cs.start();
     }
