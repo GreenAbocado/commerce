@@ -1,6 +1,4 @@
 import product.*;
-import product.dto.ProductCreateDTO;
-
 import java.util.*;
 
 /* 객체 초기화 및 의존 관계 설정 */
