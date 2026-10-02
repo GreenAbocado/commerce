@@ -35,9 +35,7 @@ public class ProductManager {
     }
 
     public ProductResponseDTO getByCategoryAndName(Category category, String name) {
-        Product product = findByCategoryAndName(category, name)
-                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
-
+        Product product = findProduct(category, name);
         return ProductResponseDTO.from(product);
     }
 
@@ -49,8 +47,7 @@ public class ProductManager {
 
     /* 부분 변경(PATCH) 입력 해석 후 도메인에 위임 (null : 변경하지 않음) */
     public void updateProductInfo(ProductUpdateDTO dto) {
-        Product product = findByCategoryAndName(dto.category(), dto.name())
-                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
+        Product product = findProduct(dto.category(), dto.name());
 
         int price = (dto.price() != null ? dto.price() : product.getPrice());
         String description = (dto.description() != null ? dto.description() : product.getDescription());
@@ -58,21 +55,24 @@ public class ProductManager {
         product.updateInfo(price, description);
     }
 
-    /* 재고 증가/감소 해석 후 도메인에 위임 */
-    public void adjustStock(Category category, String name, int amount) {
-        Product product = findByCategoryAndName(category, name)
-                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
+    public void increaseStock(Category category, String name, int amount) {
+        Product product = findProduct(category, name);
+        product.increaseStock(amount);
+    }
 
-        // 0일 경우 도메인에서 검증 후 예외
-        if (amount > 0) { product.increaseStock(amount); }
-        else { product.decreaseStock(amount); }
+    public void decreaseStock(Category category, String name, int amount) {
+        Product product = findProduct(category, name);
+        product.decreaseStock(amount);
     }
 
     public void deleteByCategoryAndName(Category category, String name) {
-        Product product = findByCategoryAndName(category, name)
-                .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
-
+        Product product = findProduct(category, name);
         removeProduct(product);
+    }
+
+    private Product findProduct(Category category, String name) {
+        return findByCategoryAndName(category, name)
+                    .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
     }
 
 
