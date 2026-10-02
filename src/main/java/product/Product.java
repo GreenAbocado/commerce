@@ -13,11 +13,11 @@ public class Product {
     /* 이름으로 구분, 이후 필요시 id 추가 */
     private final String name;
     private final Category category;
-    private Integer price;
+    private int price;
     private String description;
     private int stock;
 
-    @Builder    /* 매개변수 과도화로 빌더 적용, stock 제외 매개변수 null일 경우 예외 */
+    @Builder    /* 매개변수 과도화로 빌더 적용, price의 경우 래퍼 사용하여 null 검증 */
     private Product(String name, Category category, Integer price, String description, int stock) {
         validateAtConstruct(name, category, price, description, stock);
         this.name = name;
@@ -32,16 +32,12 @@ public class Product {
        - price/description 선택 변경
        - 재고 증감 로직 */
 
-    public void update(Integer price, String description) {
-        /* null 여부로 변경 필드 결정
-           null이 아닌 인자만 비즈니스 검증 후 필드 변경
-           변경 필드에 대한 매개 변수가 검증에 실패할 경우, 모든 필드 변경 X */
+    public void updateInfo (Integer price, String description) {
+        validatePrice(price);
+        validateDescription(description);
 
-        if (price != null) { validatePrice(price); }
-        if (description != null) { validateDescription(description); }
-
-        if (price != null) { this.price = price; }
-        if (description != null) { this.description = description; }
+        this.price = price;
+        this.description = description;
     }
 
     public void increaseStock(int amount) {    // 예외 : amount 1 미만, 재고 초과
@@ -88,7 +84,7 @@ public class Product {
 
     private static void validatePrice(Integer price) {
         if (price == null || price < 0) {
-            throw new IllegalArgumentException(MINUS_PRICE_INPUT);
+            throw new IllegalArgumentException(INVALID_PRICE_INPUT);
         }
     }
 
