@@ -23,4 +23,10 @@ public class ProductResponseDTO {
     public static ProductResponseDTO from(Product product) {
         return new ProductResponseDTO(product.getName(), product.getPrice(), product.getDescription(), product.getStock());
     }
+
+
+    @Override
+    public String toString() {
+        return String.format(" %s | %,d원 | %s | 재고: %d개 ", name, price, description, stock);
+    }
 }

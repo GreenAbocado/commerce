@@ -17,7 +17,7 @@ public class Product {
     private String description;
     private int stock;
 
-    @Builder    /* 매개변수 과도화로 빌더 적용, price의 경우 래퍼 사용하여 null 검증 */
+    @Builder    /* 매개변수 과도화로 빌더 적용, price의 경우 Builder 누락을 대비헤 null 검증을 위한 래퍼 사용 */
     private Product(String name, Category category, Integer price, String description, int stock) {
         validateAtConstruct(name, category, price, description, stock);
         this.name = name;
@@ -115,11 +115,5 @@ public class Product {
         validatePrice(price);
         validateDescription(description);
         validateStock(stock);
-    }
-
-
-    @Override
-    public String toString() {
-        return String.format(" %s | %,d원 | %s | 재고: %d개 ", name, price, description, stock);
     }
 }
