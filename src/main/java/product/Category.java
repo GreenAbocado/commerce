@@ -1,62 +1,33 @@
 package product;
 
 import lombok.Getter;
-import java.util.*;
 
-import static exception.ExceptionMessage.*;
+import java.util.Arrays;
 
-/* 상품 비즈니스 로직 수행 및 저장소 관리, 카테고리별 ProductManager */
-public class Category {
-    @Getter
+import static exception.ExceptionMessage.NONE_CATEGORY_INPUT;
+
+/* 카테고리 도메인 모델 (Product에 포함) */
+/* 런타임 중 CRUD 요구사항 생길 경우 일반 클래스로 전환 */
+@Getter
+public enum Category {
+    ELECTRONIC("전자제품", 0), CLOTH("의류",1), FOOD("음식",2);
+
     private final String name;
-    private final List<Product> list = new ArrayList<>();   // 상품 저장소는 정의된 메서드로만 접근 가능
+    private final int id;
+    /* 메뉴에서 출력하는 숫자가 카테고리 자체의 순서가 아니라 임의로
+       정한 값이라면 수정 필요 */
 
-    public Category(String name) {
+    Category(String name, int id) {
         this.name = name;
+        this.id = id;
     }
 
-
-    /* 비즈니스 로직 */
-
-    public void addProduct(String name, int price, String description, int stock) {
-        if (findByName(name).isPresent()) { throw new IllegalArgumentException(PRODUCT_ALREADY_EXIST); }
-        saveProduct(new Product(name, price, description, stock));
+    /* id를 기반으로 Category 반환 */
+    public static Category by (int id) {
+        return Arrays.stream(Category.values())
+                    .filter((category)-> category.getId() == id)
+                    .findFirst().orElseThrow(() -> new IllegalArgumentException(NONE_CATEGORY_INPUT));
     }
 
-    public Product getProductByName(String name) {
-        return findByName(name).orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
-    }
-
-    public List<Product> getAllProducts() {
-        return findAll();
-    }
-
-    public void updateProduct(String name, Integer price, String description) {
-        Product product = getProductByName(name);
-        product.update(price, description);
-    }
-
-    public void deleteProduct(String name) {
-        removeProduct(getProductByName(name));
-    }
-
-
-    /* 상품 저장소 관리 / 이후 클래스 무거워질 경우 분리 */
-
-    private void saveProduct(Product product) {
-        list.add(product);
-    }
-
-    private Optional<Product> findByName(String name) {
-        return list.stream().filter((product) -> product.getName().equals(name))
-                    .findFirst();
-    }
-
-    private List<Product> findAll() {
-        return new ArrayList<>(list);   // 원본 데이터 보호를 위해 새로 생성하여 반환
-    }
-
-    private void removeProduct(Product product) {
-        list.remove(product);
-    }
+    // 이미 name은 값이 확정된 불변 필드이므로 유효성 검증 불필요
 }
