@@ -11,8 +11,9 @@ public class ProductManager {
     private final Map<Category, Map<String, Product>> store = new EnumMap<>(Category.class);
 
     public ProductManager() {
-        store.keySet()                 // LinkedList + HashMap 사용으로 순차 확인 가능 + 중복 체크 및 단건 조회 등 O(1)
-                .forEach((key) -> store.put(key, new LinkedHashMap<>()));
+        Arrays.stream(Category.values())
+                .forEach((category) -> store.put(category, new LinkedHashMap<>()));
+        // LinkedList + HashMap 사용으로 순차 확인 가능 + 중복 체크 및 단건 조회 등 O(1)
     }
 
     /* 순수한 상품 관리가 아닌 카테고리와 결합하여 상품관리만을 확장성 있게 사용 X
@@ -33,7 +34,7 @@ public class ProductManager {
                         .stock(dto.stock()).build());
     }
 
-    public ProductResponseDTO getProductByCategoryAndName(Category category, String name) {
+    public ProductResponseDTO getByCategoryAndName(Category category, String name) {
         Product product = findByCategoryAndName(category, name)
                 .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
 
@@ -67,7 +68,7 @@ public class ProductManager {
         else { product.decreaseStock(amount); }
     }
 
-    public void deleteProductByCategoryAndName(Category category, String name) {
+    public void deleteByCategoryAndName(Category category, String name) {
         Product product = findByCategoryAndName(category, name)
                 .orElseThrow(() -> new IllegalArgumentException(PRODUCT_NOT_EXIST));
 
@@ -84,7 +85,7 @@ public class ProductManager {
     }
 
     private Optional<Product> findByCategoryAndName(Category category, String name) {
-        return Optional.ofNullable(store.get(category).get(name));
+        return Optional.ofNullable(store.get(category).getOrDefault(name, null));
     }
 
     private List<Product> findAllByCategory(Category category) {
