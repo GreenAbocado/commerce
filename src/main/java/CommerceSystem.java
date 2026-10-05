@@ -7,12 +7,11 @@ import static exception.ExceptionMessage.NUM_NOT_EXIST;
 import static exception.GlobalExceptionHandler.handleException;
 import static io.MenuOption.EXIT;
 
-/* 로직 분기, 입력, 검증 -> 클래스 분리 필요 */
-
+/* 상품 조회 로직 분기 */
 @RequiredArgsConstructor
 public class CommerceSystem {
 
-    private final ProductManager productManager;
+    private final ProductService productService;
     private boolean isRun = true;
     private final Input input;
 
@@ -26,7 +25,7 @@ public class CommerceSystem {
                 if (category == null) { stopRun(); return; }
 
                 // 특정 카테고리 상품들 출력
-                List<ProductResponseDTO> list = productManager.getAllByCategory(category);
+                List<ProductResponseDTO> list = productService.getAllByCategory(category);
                 Output.printProducts(category, list);
 
                 int productNum = input.readNum();
