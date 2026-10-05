@@ -5,13 +5,12 @@ import product.dto.ProductResponseDTO;
 import java.util.*;
 
 /* 출력 포맷팅 및 출력 */
-public class Output {
+public class ProductOutput {
 
     /* 출력 */
     private static void print(String s) {
         System.out.print(s);
     }
-
 
     /* 상품 출력문 포맷팅 */
 
@@ -44,7 +43,7 @@ public class Output {
 
     // 키오스크 종료문
     public static void printExit() {
-        print("커머스 플랫폼을 종료합니다.");
+        print("커머스 플랫폼을 종료합니다.\n");
     }
 
 
@@ -53,9 +52,9 @@ public class Output {
     // 카테고리 종류 출력문 생성  ex) {1. 전자제품  2. 의류 ... }
     private static String categoriesToStr() {
         StringBuilder sb = new StringBuilder();
-        Map<Integer, Category> map = MenuOption.getCategoryMenuMap();
-
-        map.forEach((key, value) -> sb.append(String.format("%d. %s\n", key, value.getName())));
+        for (int i = 1; i <= Category.categories.length; i++) {
+            sb.append(String.format("%d. %s\n", i, Category.categories[i-1].getName()));
+        }
         return sb.toString();
     }
 
@@ -78,5 +77,5 @@ public class Output {
     }
 
 
-    private Output() {}
+    private ProductOutput() {}
 }
