@@ -1,4 +1,4 @@
-import io.Input;
+import io.CommonInput;
 import product.*;
 import java.util.*;
 
@@ -14,7 +14,7 @@ public class Main {
         // 더미 상품 삽입
         Arrays.stream(DummyProduct.values())
                 .forEach((dummy)-> productService.addProduct(dummy.createDTO()));
-        Input input = new Input(System.in);
+        CommonInput input = new CommonInput(System.in);
         CommerceSystem cs = new CommerceSystem(productService, input);
 
         cs.start();
