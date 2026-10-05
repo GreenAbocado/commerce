@@ -5,15 +5,12 @@ import product.dto.ProductResponseDTO;
 import java.util.*;
 
 /* 출력 포맷팅 및 출력 */
-public class Output {
-
-
+public class ProductOutput {
 
     /* 출력 */
     private static void print(String s) {
         System.out.print(s);
     }
-
 
     /* 상품 출력문 포맷팅 */
 
@@ -46,7 +43,7 @@ public class Output {
 
     // 키오스크 종료문
     public static void printExit() {
-        print("커머스 플랫폼을 종료합니다.");
+        print("커머스 플랫폼을 종료합니다.\n");
     }
 
 
@@ -55,9 +52,9 @@ public class Output {
     // 카테고리 종류 출력문 생성  ex) {1. 전자제품  2. 의류 ... }
     private static String categoriesToStr() {
         StringBuilder sb = new StringBuilder();
-        Map<Integer, Category> map = MenuOption.getCategoryMenuMap();
-
-        map.forEach((key, value) -> sb.append(String.format("%d. %s\n", key, value.getName())));
+        for (int i = 1; i <= Category.categories.length; i++) {
+            sb.append(String.format("%d. %s\n", i, Category.categories[i-1].getName()));
+        }
         return sb.toString();
     }
 
@@ -68,7 +65,7 @@ public class Output {
 
         for (ProductResponseDTO dto : list) {
             sb.append(String.format("%d. %-14s | %,10d원 | %-14s\n",
-                    ++idx, dto.getName(), dto.getPrice(), dto.getDescription()));
+                    ++idx, dto.name(), dto.price(), dto.description()));
         }
         return sb.toString();
     }
@@ -76,9 +73,9 @@ public class Output {
     // 상품 정보 출력문 생성  ex) { 아이폰 16 | 1,500,000원 | 애플 스마트폰 | 재고 : 20개 }
     private static String productToStr(ProductResponseDTO dto) {
         return String.format(" %s | %,d원 | %s | 재고: %d개 ",
-                dto.getName(), dto.getPrice(), dto.getDescription(), dto.getStock());
+                dto.name(), dto.price(), dto.description(), dto.stock());
     }
 
 
-    private Output() {}
+    private ProductOutput() {}
 }

@@ -10,12 +10,12 @@ public enum DummyProduct {
     ELECTRONIC_3("MackBook Pro", ELECTRONIC,2_400_000, "M3 칩셉이 탑재된 노트북", 40),
     ELECTRONIC_4("Airpods Pro", ELECTRONIC,350_000, "노이즈 캔슬링 무선 이어폰", 50),
 
-    CLOTH_1("A - 의류", CLOTH,50_000, "A", 10),
-    CLOTH_2("B - 의류", CLOTH,1_000_000, "B", 20),
-    CLOTH_3("C - 의류", CLOTH,100_000, "C", 30),
+    CLOTH_1("의류 A", CLOTH,50_000, "A", 10),
+    CLOTH_2("의류 B", CLOTH,1_000_000, "B", 20),
+    CLOTH_3("의류 C", CLOTH,100_000, "C", 30),
 
-    FOOD_1("A - 음식", FOOD,10_000, "AA", 40),
-    FOOD_2("B - 음식", FOOD,100_000, "BB", 50);
+    FOOD_1("음식 A", FOOD,10_000, "AA", 40),
+    FOOD_2("음식 B", FOOD,100_000, "BB", 50);
 
     private final String name;
     private final Category category;

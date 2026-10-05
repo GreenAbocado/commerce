@@ -1,26 +1,11 @@
 package product.dto;
 
+import lombok.Builder;
 import lombok.Getter;
 import product.Product;
 
-/* 도메인 -> 외부 계층, 필요한 데이터만 전달 */
-@Getter
-public class ProductResponseDTO {
-    private final String name;
-    private final int price;
-    private final String description;
-    private final int stock;
-
-    // 정적 팩토리로만 생성 가능
-    private ProductResponseDTO(String name, int price, String description, int stock) {
-        this.name = name;
-        this.price = price;
-        this.description = description;
-        this.stock = stock;
-    }
-
-    // ProductManager에서 DTO 변환 로직 복잡도로 인해 책임 위임
-    public static ProductResponseDTO from(Product product) {
-        return new ProductResponseDTO(product.getName(), product.getPrice(), product.getDescription(), product.getStock());
-    }
+/* 상품 조회 후 외부 계층으로 필요 데이터만 전달
+   빌더를 통해 생성 시 가독성 향상 */
+@Builder
+public record ProductResponseDTO(Long id, String name, int price, String description, int stock) {
 }
