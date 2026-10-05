@@ -5,7 +5,7 @@ public class ExceptionMessage {
 
     /* Product : 입력 값 관련 */
     public static final String NONE_NAME_INPUT =  "상품명이 존재하지 않습니다.\n";
-    public static final String OVER_NAME_INPUT =  "상품명은 %d자를 초과할 수 없습니다.\n";
+    public static final String INVALID_NAME_INPUT =  "상품명이 올바르지 않습니다.\n";
     public static final String NONE_CATEGORY_INPUT = "카테고리가 존재하지 않습니다.\n";
     public static final String INVALID_PRICE_INPUT = "유효하지 않은 가격입니다.\n";
     public static final String MINUS_STOCK_INPUT = "재고에 음수 입력은 유효하지 않습니다.\n";

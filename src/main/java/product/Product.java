@@ -1,23 +1,26 @@
 package product;
 
 import lombok.*;
+import java.util.regex.Pattern;
 import static exception.ExceptionMessage.*;
 
 /* 상품 도메인 객체 <필드 규칙 및 상태 변경 관리 (유효성, 필드 변경 로직 등)> */
 @Getter
 public class Product {
 
-    private static final int MAX_NAME_LENGTH = 20;
+    // 문자열 필드 검증 규칙 (정규표현식 간소하게 작성)
+    private static final Pattern NAME_PATTERN = Pattern.compile("[0-9A-Za-z가-힣\\s]{1,20}");
     private static final int MAX_DESCRIPTION_LENGTH = 100;
 
     /* 이름으로 구분, 이후 필요시 id 추가 */
+    private Long id;
     private final String name;
     private final Category category;
     private int price;
     private String description;
     private int stock;
 
-    @Builder    /* 매개변수 과도화로 빌더 적용, price의 경우 Builder 누락을 대비헤 null 검증을 위한 래퍼 사용 */
+    @Builder    /* 빌더로 클라이언트 가독성 향상, price의 경우 빌더 누락으로 인해 값이 없는 상태를 구분하기 위해 래퍼 사용 */
     private Product(String name, Category category, Integer price, String description, int stock) {
         validateAtConstruct(name, category, price, description, stock);
         this.name = name;
@@ -27,30 +30,35 @@ public class Product {
         this.stock = stock;
     }
 
-
     /* 상태 변경 로직
-       - price/description 선택 변경
-       - 재고 증감 로직 */
+       - id 초기화
+       - price/description/stock 선택 변경
+       - 재고 감소 로직 */
 
-    public void updateInfo (Integer price, String description) {
-        validatePrice(price);
-        validateDescription(description);
+    public void initId(Long id) {
+        if (this.id != null) { throw new IllegalStateException("id 이미 존재"); }
 
-        this.price = price;
-        this.description = description;
+        if (id == null) { throw new IllegalArgumentException("유효하지 않은 id"); }
+
+        this.id = id;
     }
 
-    public void increaseStock(int amount) {    // 예외 : amount 1 미만, 재고 초과
-        validateAmount(amount);
+    /* 부분 변경(PATCH) (null : 변경하지 않음) */
+    public void updateInfo (Integer price, String description, Integer stock) {
+        /* 변경 필드 비즈니스 규칙 모두 검증 후 변경 */
+        if (price != null) { validatePrice(price);}
+        if (description != null) { validateDescription(description); }
+        if (stock != null) { validateStock(stock); }
 
-        if (Integer.MAX_VALUE - amount < stock) {
-            throw new IllegalStateException(OVER_STOCK_STATE);
+        if (price != null) {this.price = price;}
+        if (description != null) {this.description = description;}
+        if (stock != null) {this.stock = stock;}
+    }
+
+    public void decreaseStock(int amount) {    // 검증 : amount 1 미만, 재고 부족
+        if (amount <= 0) {
+            throw new IllegalArgumentException(INVALID_AMOUNT_INPUT);
         }
-        this.stock += amount;
-    }
-
-    public void decreaseStock(int amount) {    // 예외 : amount 1 미만, 재고 부족
-        validateAmount(amount);
 
         if (this.stock < amount) {
             throw new IllegalStateException(UNDER_STOCK_STATE);
@@ -60,27 +68,12 @@ public class Product {
 
 
     /*  입력 유효성 및 비즈니스 규칙 검증
-        name : null, 공백, 20자 초과 입력
-        category : null 입력
-        description : null, 100자 초과 입력
         price : null, 음수 입력
         stock : 음수 입력
-        stock 증감 로직 : 0개 이하 입력 */
+        description : null, 100자 초과 입력
 
-    private static void validateName(String name) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException(NONE_NAME_INPUT);
-        }
-        if (name.length() > MAX_NAME_LENGTH) {
-            throw new IllegalArgumentException(String.format(OVER_NAME_INPUT, MAX_NAME_LENGTH));
-        }
-    }
-
-    private static void validateCategory(Category category) {
-        if (category == null) {
-            throw new IllegalArgumentException(NONE_CATEGORY_INPUT);
-        }
-    }
+        name : 각 문자가 [0-9A-Za-z가-힣,공백]으로 1~20자가 아닌 입력
+        category : null 입력 */
 
     private static void validatePrice(Integer price) {
         if (price == null || price < 0) {
@@ -103,15 +96,18 @@ public class Product {
         }
     }
 
-    private static void validateAmount(int amount) {
-        if (amount <= 0) {
-            throw new IllegalArgumentException(INVALID_AMOUNT_INPUT);
-        }
-    }
-
+    /* 불변 필드의 경우 메서드 추출 없이 바로 생성자에서만 검증 */
     private static void validateAtConstruct(String name, Category category, Integer price, String description, int stock) {
-        validateName(name);
-        validateCategory(category);
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException(NONE_NAME_INPUT);
+        }
+        if (!NAME_PATTERN.matcher(name).matches()) {
+            throw new IllegalArgumentException(INVALID_NAME_INPUT);
+        }
+        if (category == null) {
+            throw new IllegalArgumentException(NONE_CATEGORY_INPUT);
+        }
+
         validatePrice(price);
         validateDescription(description);
         validateStock(stock);
