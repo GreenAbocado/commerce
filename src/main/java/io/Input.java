@@ -21,9 +21,10 @@ public class Input {
         return sc.nextLine();
     }
 
+    /* 숫자의 경우 앞뒤 공백 제거 가능 */
     public int readNum() {
         try {
-            return Integer.parseInt(readString());
+            return Integer.parseInt(readString().trim());
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException(NOT_NUM_TYPE);
         }
