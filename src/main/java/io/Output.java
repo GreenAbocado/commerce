@@ -7,8 +7,6 @@ import java.util.*;
 /* 출력 포맷팅 및 출력 */
 public class Output {
 
-
-
     /* 출력 */
     private static void print(String s) {
         System.out.print(s);
@@ -68,7 +66,7 @@ public class Output {
 
         for (ProductResponseDTO dto : list) {
             sb.append(String.format("%d. %-14s | %,10d원 | %-14s\n",
-                    ++idx, dto.getName(), dto.getPrice(), dto.getDescription()));
+                    ++idx, dto.name(), dto.price(), dto.description()));
         }
         return sb.toString();
     }
@@ -76,7 +74,7 @@ public class Output {
     // 상품 정보 출력문 생성  ex) { 아이폰 16 | 1,500,000원 | 애플 스마트폰 | 재고 : 20개 }
     private static String productToStr(ProductResponseDTO dto) {
         return String.format(" %s | %,d원 | %s | 재고: %d개 ",
-                dto.getName(), dto.getPrice(), dto.getDescription(), dto.getStock());
+                dto.name(), dto.price(), dto.description(), dto.stock());
     }
 
 
