@@ -32,11 +32,23 @@ public class ProductService {
                                 .orElseThrow(()-> new IllegalArgumentException(PRODUCT_NOT_EXIST)));
     }
 
+    private Product getById(long id) {
+        return productRepository.findById(id).orElseThrow(()-> new IllegalArgumentException(PRODUCT_NOT_EXIST));
+    }
+
+    public ProductResponseDTO getProductById(long id) {
+        return convertToDTO(getById(id));
+    }
+
     /* 도메인이 null이 아닌 필드만 변경 */
     public void updateProductInfo(ProductUpdateDTO dto) {
         Product product = productRepository.findById(dto.id())
                 .orElseThrow(()-> new IllegalArgumentException(PRODUCT_NOT_EXIST));
         product.updateInfo(dto.price(),dto.description(), dto.stock());
+    }
+
+    public void decreaseStock(long id, int amount) {
+        getById(id).decreaseStock(amount);
     }
 
     public void removeProduct(Long id) {
