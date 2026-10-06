@@ -1,3 +1,4 @@
+import admin.AdminService;
 import io.CommonInput;
 import order.CartItem;
 import order.CartRepository;
@@ -21,8 +22,10 @@ public class Main {
 
         OrderService orderService = new OrderService(cartService, productService);
 
+        AdminService adminService = new AdminService("000000");
+
         CommonInput input = new CommonInput(System.in);
-        CommerceSystem cs = new CommerceSystem(productService, cartService, orderService, input);
+        CommerceSystem cs = new CommerceSystem(productService, cartService, orderService, adminService, input);
 
 
         // 더미 상품 삽입
