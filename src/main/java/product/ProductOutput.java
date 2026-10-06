@@ -1,6 +1,5 @@
-package io;
+package product;
 
-import product.*;
 import product.dto.ProductResponseDTO;
 import java.util.*;
 
@@ -13,6 +12,10 @@ public class ProductOutput {
     }
 
     /* 상품 출력문 포맷팅 */
+
+    public static void printRetryMenuNum() {
+        print("[상품 번호를 다시 입력하세요]\n");
+    }
 
 
     // 특정 카테고리 상품 리스트 포맷팅
