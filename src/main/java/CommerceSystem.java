@@ -1,167 +1,126 @@
-import admin.AdminService;
+import admin.AdminController;
 import io.*;
-import lombok.RequiredArgsConstructor;
-import order.dto.CartResponseDTO;
 import order.*;
-import order.dto.*;
 import product.*;
-import product.dto.ProductResponseDTO;
 import java.util.*;
+
 import static exception.GlobalExceptionHandler.handleException;
-import static io.ProductOutput.categoriesToStr;
 import static product.Category.categories;
 
 /* 상품 조회 로직 분기 */
-@RequiredArgsConstructor
 public class CommerceSystem {
+    /* 핸들러 매퍼 */
+    private final Map<Integer, MenuOption> menuSelect;
 
-    private final ProductService productService;
-    private final CartService cartService;
-    private final OrderService orderService;
-    private final AdminService adminService;
-    private boolean isRun = true;
+    /* 각 컨트롤러 */
+    private final ProductController productController;
+    private final CartController cartController;
+    private final OrderController orderController;
+    private final AdminController adminController;
+
+    /* 실행 여부 관리 필드 */
+    private boolean isRun;
+
     private final CommonInput input;
+
+    public CommerceSystem(ProductController pc, CartController cc, OrderController oc, AdminController as, CommonInput input) {
+        productController = pc;
+        cartController = cc;
+        orderController = oc;
+        adminController = as;
+        menuSelect = new HashMap<>();
+        this.input = input;
+        isRun = true;
+        initMenuSelect();
+    }
+
 
     public void start() {
         while (isRun) {
-            handleException(this::selectMenu);
+            handleException(() -> {
+                printMenu();
+                getMenu().logic().run();
+            });
         }
-        System.out.println("커머스 플랫폼을 종료합니다.");
+        printExit();
     }
 
-    private void selectMenu() {
+    /* 입력을 받아 매핑되는 메뉴 선택을 반환 */
+    private MenuOption getMenu() {
         while (true) {
-            printMenu();
-
-            int menuNum = input.readNum();
-            if (menuNum == 0) { stopRun(); return; }
-
-            if (1 <= menuNum && menuNum <= categories.length) {
-                selectProduct(categories[menuNum-1]);
-            } else if (categories.length < menuNum && menuNum <= categories.length + 2) {
-                orderProduct(menuNum);
-            } else if (menuNum == categories.length + 3) {
-                authenticateAdmin();
-            } else {
-                System.out.println("[다시 입력하세요]");
-            }
-        }
-    }
-
-    private void selectProduct(Category category) {
-        List<ProductResponseDTO> list = productService.getAllByCategory(category);
-
-        while (true) {
-            ProductOutput.printProducts(category, list);
-
-            int productNum = input.readNum();
-
-            if (productNum == 0) { return; }
-            if ((productNum < 1 || productNum > list.size())) { System.out.println("[다시 입력하세요]"); continue; }
-
-            ProductResponseDTO product = list.get(productNum-1);
-            ProductOutput.printProduct(product);
-            selectAddCart(product.id(), product.name());
-            return;
-        }
-    }
-
-    private void selectAddCart(Long id, String name) {
-        while (true) {
-            OrderOutput.printQuestion();
             int num = input.readNum();
 
-            if (num != 1 && num != 2) { System.out.println("[다시 입력하세요]"); continue; }
-            if (num == 2) { return; }
-            cartService.addItem(id);
-            OrderOutput.printAdded(name);
-            return;
-        }
-    }
-
-    private void orderProduct(int menuNum) {
-        if (menuNum == categories.length + 1) {
-            List<CartResponseDTO> list = cartService.getAll();
-            int totalPrice = cartService.getTotalPrice();
-            OrderOutput.printOrderQuestion(list, totalPrice);
-
-            while (true) {
-                int num = input.readNum();
-                if (num == 1) {
-                    List<OrderResultDTO> resultList = orderService.order();
-                    OrderOutput.printSuccessOrder(totalPrice, resultList);
-                    break;
-                } else if (num == 2) {
-                    cartService.clear();
-                    break;
-                } else {
-                    System.out.println("[다시 입력하세요]");
-                }
+            if (menuSelect.containsKey(num)) {
+                return menuSelect.get(num);
             }
+            printRetry();
         }
-    }
-
-    private void authenticateAdmin() {
-        for (int i = 0; i < 3; i++) {
-            System.out.println("관리자 비밀번호를 입력해주세요:");
-            String inputStr = input.readString();
-            if (adminService.authenticate(inputStr)) {
-                enterAdminMode();
-                return;
-            }
-        }
-        throw new IllegalArgumentException();
-    }
-
-    private void enterAdminMode() {
-        while (true) {
-            printAdminMode();
-            int num = input.readNum();
-            switch(num) {
-                case 0: return;
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-            }
-        }
-    }
-
-    private void printAdminMode() {
-        System.out.println("""
-                [ 관리자 모드 ]
-                1. 상품 추가
-                2. 상품 수정
-                3. 상품 삭제
-                4. 전체 상품 현황
-                0. 메인으로 돌아가기
-                """);
-    }
-
-
-    private void printMenu() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format("""
-              
-              [ 실시간 커머스 플랫폼 메인 ]
-              %s
-              0. 종료
-              """, categoriesToStr()));
-
-        if (!cartService.getAll().isEmpty()) {
-            sb.append(String.format("""
-                    
-                    [주문 관리]
-                    %d. 장바구니 확인
-                    %d. 주문 취소
-                    
-                    """, categories.length+1, categories.length+2));
-        }
-        sb.append(String.format("%d. 관리자 모드", categories.length+3));
-        System.out.print(sb);
     }
 
     private void stopRun() {
         this.isRun = false;
+    }
+
+    /* 핸들러 매핑, 각 컨트롤러로 요청 위임 */
+    /* 카테고리 개수에 따라 동적으로 메뉴 번호가 바뀌므로 enum이 아닌 객체로 동적으로 삽입 */
+    /* MenuOption에 카테고리 길이 포함하여 enum 가능 - 수정 필요 */
+    private void initMenuSelect() {
+        int menuNum = MenuOption.START_NUM_EXIT;
+
+        menuSelect.put(menuNum++, new MenuOption(MenuOption.EXIT, this::stopRun));
+
+        /* 카테고리별로 매개변수만 다르게 하여 보관 */
+        /* DTO 반환시 바로 CartController로 위임 (null: 상품 선택 안 함) */
+        for (Category category : categories) {
+            menuSelect.put(menuNum++, new MenuOption(category.getName(), () -> {
+                productController.getProduct(category).ifPresent(cartController::addCartItem);
+            }));
+        }
+
+        menuSelect.put(menuNum++, new MenuOption(MenuOption.CART_CHECK, orderController::order));
+        menuSelect.put(menuNum++, new MenuOption(MenuOption.ORDER_CANCEL, cartController::clear));
+        menuSelect.put(menuNum, new MenuOption(MenuOption.ADMIN, () -> {
+            if (adminController.authenticate()) {productController.manageProducts(); }
+        }));
+    }
+
+
+
+    /* 출력 관련 */
+
+    private void printRetry() {
+        System.out.println("다시 입력하세요");
+    }
+
+    private void printExit() {
+        System.out.println("커머스 플랫폼을 종료합니다.");
+    }
+
+    /* MenuOption 정의를 기반으로 메인 메뉴 출력문 생성 후 출력 */
+    private void printMenu() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[실시간 커머스 플랫폼 메인]\n");
+
+        /* 카테고리만 포함 */
+        /* 스트림 너무 길어짐 -> 불필요하게 category 길이 다시 확인 -> enum으로 다시 수정 필요 */
+        menuSelect.entrySet().stream().filter((entry)
+                        -> MenuOption.START_NUM_EXIT < entry.getKey() && entry.getKey() <= categories.length)
+                .forEach((entry) ->
+                        sb.append(String.format("%d. %s\n", entry.getKey(), entry.getValue().name())));
+
+        /* 종료 포함 */
+        sb.append(String.format(
+                "%d. %s\n", MenuOption.START_NUM_EXIT, menuSelect.get(MenuOption.START_NUM_EXIT).name()));
+
+        /* 장바구니 여부 확인 후 포함 */
+        /* 메뉴 번호 정의 달라지면 변경 위험 -> 수정 필요 */
+        if (!cartController.getCartItems().isEmpty()) {
+            sb.append("\n[주문 관리]\n");
+            sb.append(String.format("%d. %s\n", menuSelect.size()-3, MenuOption.CART_CHECK));
+            sb.append(String.format("%d. %s\n", menuSelect.size()-2, MenuOption.ORDER_CANCEL));
+        }
+        /* 관리자 메뉴 포함 */
+        sb.append(String.format("\n%d. %s\n", menuSelect.size()-1, MenuOption.ADMIN));
+        System.out.print(sb);
     }
 }

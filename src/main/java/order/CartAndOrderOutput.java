@@ -1,4 +1,4 @@
-package io;
+package order;
 
 import order.dto.CartResponseDTO;
 import order.dto.OrderResultDTO;
@@ -6,14 +6,19 @@ import order.dto.OrderResultDTO;
 import java.util.List;
 
 /* 주문 관련 출력 포맷팅 및 출력 */
-public class OrderOutput {
+public class CartAndOrderOutput {
 
     /* 출력 */
     private static void print(String s) {
-        System.out.print(s);
+        System.out.println(s);
     }
 
-    public static void printQuestion() {
+
+    public static void printCartItems(List<CartResponseDTO> list) {
+        print(itemToStr(list));
+    }
+
+    public static void printCartAddQuestion() {
         print("""
                 
                 위 상품을 장바구니에 추가하시겠습니까?
@@ -21,14 +26,21 @@ public class OrderOutput {
                 """);
     }
 
+
+    public static void printRetryAnswer() {
+        print("정확한 번호를 눌러주세요");
+    }
+
+
     public static void printAdded(String name) {
         print(String.format("%s가 장바구니에 추가되었습니다.\n", name));
     }
 
-    public static void printOrderQuestion(List<CartResponseDTO> list, int totalPrice) {
+    public static void printOrderConfirmation(List<CartResponseDTO> list, int totalPrice) {
         print(String.format("""
                 아래와 같이 주문 하시겠습니까?
                 
+                [ 장바구니 내역 ]
                 %s
                 [ 총 주문 금액 ]
                 %,d원
@@ -43,6 +55,10 @@ public class OrderOutput {
                 %s
                 """, totalPrice, resultToStr(list)
         ));
+    }
+
+    public static void printClearCart() {
+        print("장바구니가 비워졌습니다.");
     }
 
     // 장바구니 내역 출력문 생성
