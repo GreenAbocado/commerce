@@ -3,7 +3,6 @@ import io.*;
 import order.*;
 import product.*;
 import java.util.*;
-
 import static exception.GlobalExceptionHandler.handleException;
 import static product.Category.categories;
 
@@ -35,6 +34,7 @@ public class CommerceSystem {
     }
 
 
+    /* 커머스 시스템 시작 */
     public void start() {
         while (isRun) {
             handleException(() -> {
@@ -47,40 +47,35 @@ public class CommerceSystem {
 
     /* 입력을 받아 매핑되는 메뉴 선택을 반환 */
     private MenuOption getMenu() {
-        while (true) {
-            int num = input.readNum();
-
-            if (menuSelect.containsKey(num)) {
-                return menuSelect.get(num);
-            }
-            printRetry();
-        }
+        int num = input.readNumValidate(MenuOption.START_NUM_EXIT, menuSelect.size()-1);
+        return menuSelect.get(num);
     }
 
+    /* 커머스 시스템 비활성 상태로 변경 */
     private void stopRun() {
         this.isRun = false;
     }
 
     /* 핸들러 매핑, 각 컨트롤러로 요청 위임 */
     /* 카테고리 개수에 따라 동적으로 메뉴 번호가 바뀌므로 enum이 아닌 객체로 동적으로 삽입 */
-    /* MenuOption에 카테고리 길이 포함하여 enum 가능 - 수정 필요 */
+    /* 수정 필요 */
     private void initMenuSelect() {
         int menuNum = MenuOption.START_NUM_EXIT;
 
         menuSelect.put(menuNum++, new MenuOption(MenuOption.EXIT, this::stopRun));
 
         /* 카테고리별로 매개변수만 다르게 하여 보관 */
-        /* DTO 반환시 바로 CartController로 위임 (null: 상품 선택 안 함) */
+        /* DTO 반환시 바로 CartController로 위임 (상품 선택 안 함 : 빈 Optional) */
         for (Category category : categories) {
             menuSelect.put(menuNum++, new MenuOption(category.getName(), () -> {
-                productController.getProduct(category).ifPresent(cartController::addCartItem);
+                productController.userFlow(category).ifPresent(cartController::addCartItem);
             }));
         }
 
         menuSelect.put(menuNum++, new MenuOption(MenuOption.CART_CHECK, orderController::order));
         menuSelect.put(menuNum++, new MenuOption(MenuOption.ORDER_CANCEL, cartController::clear));
         menuSelect.put(menuNum, new MenuOption(MenuOption.ADMIN, () -> {
-            if (adminController.authenticate()) {productController.manageProducts(); }
+            if (adminController.authenticate()) {productController.manageFlow(); }
         }));
     }
 
@@ -88,31 +83,28 @@ public class CommerceSystem {
 
     /* 출력 관련 */
 
-    private void printRetry() {
-        System.out.println("다시 입력하세요");
-    }
-
     private void printExit() {
         System.out.println("커머스 플랫폼을 종료합니다.");
     }
 
     /* MenuOption 정의를 기반으로 메인 메뉴 출력문 생성 후 출력 */
+    /* 복잡해서 수정 필요 */
     private void printMenu() {
         StringBuilder sb = new StringBuilder();
         sb.append("[실시간 커머스 플랫폼 메인]\n");
 
-        /* 카테고리만 포함 */
-        /* 스트림 너무 길어짐 -> 불필요하게 category 길이 다시 확인 -> enum으로 다시 수정 필요 */
+        /* 카테고리 append */
+        /* 스트림 너무 길어짐 -> 불필요하게 category 길이 다시 확인 -> 수정 필요 */
         menuSelect.entrySet().stream().filter((entry)
                         -> MenuOption.START_NUM_EXIT < entry.getKey() && entry.getKey() <= categories.length)
                 .forEach((entry) ->
                         sb.append(String.format("%d. %s\n", entry.getKey(), entry.getValue().name())));
 
-        /* 종료 포함 */
+        /* 종료 append */
         sb.append(String.format(
                 "%d. %s\n", MenuOption.START_NUM_EXIT, menuSelect.get(MenuOption.START_NUM_EXIT).name()));
 
-        /* 장바구니 여부 확인 후 포함 */
+        /* 장바구니 여부 확인 후 append */
         /* 메뉴 번호 정의 달라지면 변경 위험 -> 수정 필요 */
         if (!cartController.getCartItems().isEmpty()) {
             sb.append("\n[주문 관리]\n");
