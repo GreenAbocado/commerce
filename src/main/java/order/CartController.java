@@ -14,30 +14,13 @@ public class CartController {
     private final CartService cartService;
     private final CommonInput input;
 
-    private static final int YES = 1;
-    private static final int NO = 2;
-
     /* 장바구니 추가 */
     public void addCartItem(ProductResponseDTO dto) {
         CartAndOrderOutput.printCartAddQuestion();
 
-        if (getAnswer()) {
+        if (input.readYesOrNo()) {
             cartService.addItem(dto.id());
             CartAndOrderOutput.printAdded(dto.name());
-        }
-    }
-
-    /* 입력 -> boolean 전환 */
-    private boolean getAnswer() {
-        while(true) {
-            int answer = input.readNum();
-
-            /* 취소일 경우 false, 확인일 경우 true */
-            if (answer == NO) { return false;}
-            if (answer == YES) { return true; }
-
-            /* 재입력 요청 출력 후 반복 */
-            CartAndOrderOutput.printRetryAnswer();
         }
     }
 

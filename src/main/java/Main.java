@@ -2,6 +2,9 @@ import admin.AdminController;
 import io.CommonInput;
 import order.*;
 import product.*;
+import product.io.ProductConsole;
+import product.io.ProductOutput;
+
 import java.util.*;
 
 /* 객체 초기화 및 의존 관계 설정 */
@@ -16,8 +19,10 @@ public class Main {
         CommonInput input = new CommonInput(System.in);
 
         /* 상품 관련 */
+        ProductOutput output = new ProductOutput(System.out);
+        ProductConsole console = new ProductConsole(input, output);
         ProductService productService = initProductDependencies();
-        ProductController productController = new ProductController(productService, input);
+        ProductController productController = new ProductController(productService, console);
 
         /* 장바구니 관련 */
         CartService cartService = initCartDependencies(productService);

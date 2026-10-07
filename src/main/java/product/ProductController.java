@@ -1,52 +1,77 @@
 package product;
 
-import io.CommonInput;
 import lombok.RequiredArgsConstructor;
+import product.dto.ProductCreateDTO;
 import product.dto.ProductResponseDTO;
+import product.dto.ProductSearchDTO;
+import product.dto.ProductUpdateDTO;
+import product.io.ProductConsole;
 import java.util.*;
 
-
-/* 상품 관련 요청 흐름 수행 및 입출력, 서비스에 위임 */
+/* 상품 관련 요청 처리 수행 및 콘솔, 서비스에 위임 */
 @RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
-    private final CommonInput input;
+    private final ProductConsole console;
 
-
-    /* 상품 선택 흐름 */
-    /* 종료일 경우 null이 담긴 Optional, 상품 선택 완료일 경우 상품 DTO가 담긴 Optional 반환 */
-    public Optional<ProductResponseDTO> getProduct(Category category) {
+    /* 사용자 상품 리스트 확인 및 선택 흐름 */
+    public Optional<ProductResponseDTO> userFlow(Category category) {
         List<ProductResponseDTO> list = productService.getAllByCategory(category);
 
-        ProductOutput.printProducts(category, list);
-        Optional<Integer> productIdx = getProductIdx(list.size()-1);
+        /* 종료일 경우 빈 Optional, 선택일 경우 제공된 리스트에서 상품이 담긴 Optional 반환 */
+        Optional<ProductResponseDTO> product = console.userSelectProduct(category, list);
 
-        if (productIdx.isEmpty()) { return Optional.empty(); }
+        product.ifPresent(console::printUserSelectProduct);
 
-        ProductResponseDTO product = list.get(productIdx.get());
-        ProductOutput.printProduct(product);
-        return Optional.of(product);
-    }
-
-    /* 상품 CRUD 흐름 */
-    public void manageProducts() {
-
+        /* 그대로 반환하여, 종료일 경우 빈 Optional, 선택일 경우 상품이 담긴 Optional을 외부에서 사용 */
+        return product;
     }
 
 
-    private Optional<Integer> getProductIdx(int maxIdx) {
-        while(true) {
-            /* 화면 번호와 실제 idx의 차이 해결 */
-            int productIdx = input.readNum() - 1;
+    /* 관리자 상품 CRUD 흐름 */
 
-            /* 종료일 경우 null이 담긴 Optional 반환 */
-            if (productIdx == -1) { return Optional.empty(); }
-
-            if (0 <= productIdx && productIdx <= maxIdx) {
-                return Optional.of(productIdx);
+    public void manageFlow() {
+        while (true) {
+            switch(console.adminSelectMenu()) {
+                case ADD_PRODUCT: addProduct(); break;
+                case UPDATE_PRODUCT: updateProduct(); break;
+                case DELETE_PRODUCT: deleteProduct(); break;
+                case FIND_PRODUCTS: getAllProducts(); break;
+                case BACK_MAIN: return;
             }
-            /* 재입력 요청 출력 후 반복 */
-            ProductOutput.printRetryMenuNum();
         }
+    }
+
+    /* 콘솔 Optional 확인 후 서비스로 생성 요청 위임 */
+    private void addProduct() {
+        Optional<ProductCreateDTO> dto = console.adminAddProduct();
+        if (dto.isEmpty()) { return; }
+
+        productService.addProduct(dto.get());
+        console.printAdminAddSuccess();
+    }
+
+
+    private void updateProduct() {
+        ProductSearchDTO dto = console.adminSearchProduct();
+        ProductResponseDTO findProduct = productService.getByCategoryAndName(dto.category(), dto.name());
+
+        ProductUpdateDTO updateProduct = console.adminUpdateProduct(findProduct);
+        productService.updateProductInfo(updateProduct);
+
+        /* 이전 상품과 변경된 상품 비교하여 출력 */
+        console.printAdminUpdateSuccess(findProduct, productService.getByCategoryAndName(dto.category(), dto.name()));
+    }
+
+    private void deleteProduct() {
+        ProductSearchDTO dto = console.adminSearchProduct();
+        ProductResponseDTO findProduct = productService.getByCategoryAndName(dto.category(), dto.name());
+        if (console.adminDeleteConfirm(findProduct)) { productService.removeProduct(findProduct.id()); }
+        console.printAdminDeleteSuccess();
+    }
+
+    private void getAllProducts() {
+        Arrays.stream(Category.categories).forEach((category)->
+                console.printCategoryProducts(category, productService.getAllByCategory(category)));
     }
 }
